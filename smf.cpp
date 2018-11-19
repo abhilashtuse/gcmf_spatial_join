@@ -1,71 +1,6 @@
-#include <iostream>
-#include <vector>
-#include <stdint.h>
-#include <algorithm>
-#include <fstream>
-#include <map>
+#include "helper_functions.hpp"
 
 using namespace std;
-
-// Coordinate pair
-struct Point {
-    double x, y;
-};
-
-// MBR with bottom-left and top-right pair of coordinates
-struct Mbr {
-    Point mbr_points[2];
-};
-
-vector<Mbr> R, S;
-
-void readMbrFile(string filename, vector<Mbr> &d) {
-    std::ifstream mbr_file(filename);
-    double x0, y0, x1, y1;
-    char c = ',';
-    if(!mbr_file) {
-        cout << "Cannot open input file.\n";
-        return;
-    }
-    while (mbr_file >> x0 >> c >> y0 >> c >> x1 >> c >> y1)
-    {
-        //cout << x0 << " " << y0 << " " << x1 << " " << y1 << endl;
-        Mbr temp;
-        temp.mbr_points[0] = {x0,y0};
-        temp.mbr_points[1] = {x1,y1};
-        d.push_back(temp);
-    }
-    mbr_file.close();
-}
-void CRadixSort(vector<double> X, vector<int> &sortIndex, vector<int> &rankIndex) {
-    for (int i = 0 ; i != sortIndex.size() ; i++) {
-        sortIndex[i] = i;
-        rankIndex[i] = i;
-    }
-    cout << "\noriginal array:\n";
-    for (int i = 0 ; i != X.size() ; i++) {
-        cout << X[i] << "(" << sortIndex[i] << ") ";
-    }
-    sort(sortIndex.begin(), sortIndex.end(),
-        [&](const double& a, const double& b) {
-            return (X[a] < X[b]);
-        }
-    );
-    cout << "\nsortIndex:";
-    for (int i = 0 ; i != sortIndex.size() ; i++) {
-        cout << sortIndex[i] << " ";
-    }
-    sort(rankIndex.begin(), rankIndex.end(),
-        [&](const int& a, const int& b) {
-            return (sortIndex[a] < sortIndex[b]);
-        }
-    );
-    cout << "\nrankIndex:";
-    for (int i = 0 ; i != rankIndex.size() ; i++) {
-        cout << rankIndex[i] << " ";
-    }
-    cout << endl;
-}
 
 void sortBasedMbrFilter(vector<int> &sortIndex, vector<int> &rankIndex, vector<pair<int,int>> &C) {
     int r_size = R.size();
@@ -89,19 +24,20 @@ void sortBasedMbrFilter(vector<int> &sortIndex, vector<int> &rankIndex, vector<p
                 Intersect:	    true
                 */
                 if (mbr_i_ly < mbr_j_ry && mbr_i_ry > mbr_j_ly) {
-                    cout << "\n" << i << " overlaps with " << (index/2) << endl;
+                    //cout << "\n" << i << " overlaps with " << (index/2) << endl;
                     C.push_back(pair<int,int>(i, (index/2)));
                 } else {
                     //cout << "\nNo overlap between " << i << " & " << (index/2) << endl;
                 }
             }
         }
-        cout << endl;
+        //cout << endl;
     }
 }
 int main() {
-    readMbrFile("mbr_r.txt", R);
-    readMbrFile("mbr_s.txt", S);
+    readShapeFile("./simplified-water-polygons-complete-3857/simplified_water_polygons");
+    //readMbrFile("mbr_r.txt", R);
+    //readMbrFile("mbr_s.txt", S);
 
     // X = x-coordinates of R & S
     vector<double> X;
@@ -120,6 +56,9 @@ int main() {
 
     vector<pair<int,int>> C;
     sortBasedMbrFilter(sortIndex, rankIndex, C);
-
+    cout << "C:";
+    for (auto it = C.begin(); it != C.end(); ++it) {
+        cout << "\n" << (*it).first << " overlaps with " << (*it).second;
+    }
     return 0;
 }
